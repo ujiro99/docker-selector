@@ -18,7 +18,7 @@ An example of calling with `Ctrl + d`.
 ```bash
 # add this .bashrc
 peco-docker-selector() {
-    local l=$(\docker-selector)
+    local l=$(\docker-selector -a)
     READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}${l}${READLINE_LINE:$READLINE_POINT}"
     READLINE_POINT=$(($READLINE_POINT + ${#l}))
 }
