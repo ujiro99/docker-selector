@@ -1,6 +1,8 @@
 # docker-selector
 Docker container selector using peco.
 
+![demo](https://github.com/ujiro99/docker-selector/blob/master/demo.gif)
+
 # Requirements
 * docker
 * peco
