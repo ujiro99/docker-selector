@@ -62,6 +62,13 @@ func execDockerPecoAll() string {
 }
 
 func extractID(processes string) string {
-	pos := strings.Index(processes, "\t")
-	return processes[0:pos]
+	lines := strings.Split(processes, "\n")
+	ids := make([]string, len(lines))
+	for i, l := range lines {
+		pos := strings.Index(l, "\t")
+		if pos > 0 {
+			ids[i] = l[0:pos]
+		}
+	}
+	return strings.Join(ids, " ")
 }
