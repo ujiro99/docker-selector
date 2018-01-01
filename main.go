@@ -2,16 +2,16 @@ package main
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/urfave/cli"
-	"github.com/mattn/go-pipeline"
 	"log"
+	"os"
 	"strings"
+
+	"github.com/mattn/go-pipeline"
+	"github.com/urfave/cli"
 )
 
 func main() {
-	var all bool;
+	var all bool
 	app := cli.NewApp()
 	app.Name = "docker-selector"
 	app.Usage = "docker container selector."
@@ -30,9 +30,8 @@ func main() {
 			ps = execDockerPecoAll()
 		} else {
 			ps = execDockerPeco()
-
 		}
-		id := extractId(ps)
+		id := extractID(ps)
 		fmt.Print(id)
 		return nil
 	}
@@ -62,7 +61,7 @@ func execDockerPecoAll() string {
 	return string(out)
 }
 
-func extractId(processes string) string {
+func extractID(processes string) string {
 	pos := strings.Index(processes, "\t")
 	return processes[0:pos]
 }
