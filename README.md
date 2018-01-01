@@ -1,4 +1,4 @@
-# docker-selector
+# docker-selector [![Build Status](https://travis-ci.org/ujiro99/docker-selector.svg?branch=master)](https://travis-ci.org/ujiro99/docker-selector)
 Docker container selector using peco.
 
 ![demo](https://github.com/ujiro99/docker-selector/blob/master/demo.gif)
@@ -8,6 +8,13 @@ Docker container selector using peco.
 * peco
 
 # Installation
+
+You can get binary from github release page.
+
+[-> Release Page](https://github.com/ujiro99/docker-selector/releases)
+
+or, use `go get`:
+
 ```bash
 $ go get -u github.com/ujiro99/docker-selector
 ```
