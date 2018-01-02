@@ -4,14 +4,20 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/mattn/go-pipeline"
 	"github.com/urfave/cli"
 )
 
+var (
+	columnSep = regexp.MustCompile(`\s+`)
+)
+
 func main() {
 	var all bool
+	var image bool
 	app := cli.NewApp()
 	app.Name = "docker-selector"
 	app.Usage = "docker container selector."
@@ -22,16 +28,22 @@ func main() {
 			Usage:       "Show all containers",
 			Destination: &all,
 		},
+		cli.BoolFlag{
+			Name:        "image, i",
+			Usage:       "Show images",
+			Destination: &image,
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
-		var ps string
-		if all {
-			ps = execDockerPecoAll()
+		var id string
+		if image {
+			id = execDockerImage()
+		} else if all {
+			id = execDockerPecoAll()
 		} else {
-			ps = execDockerPeco()
+			id = execDockerPeco()
 		}
-		id := extractID(ps)
 		fmt.Print(id)
 		return nil
 	}
@@ -39,35 +51,46 @@ func main() {
 	app.Run(os.Args)
 }
 
-func execDockerPeco() string {
+func execDockerImage() string {
 	out, err := pipeline.Output(
-		[]string{"docker", "ps", "--format", "{{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Command}}\t{{.RunningFor}}"},
+		[]string{"docker", "images"},
 		[]string{"peco"},
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return string(out)
+	return extractColumn(out, 2)
+}
+
+func execDockerPeco() string {
+	out, err := pipeline.Output(
+		[]string{"docker", "ps"},
+		[]string{"peco"},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return extractColumn(out, 0)
 }
 
 func execDockerPecoAll() string {
 	out, err := pipeline.Output(
-		[]string{"docker", "ps", "-a", "--format", "{{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Command}}\t{{.RunningFor}}"},
+		[]string{"docker", "ps", "-a"},
 		[]string{"peco"},
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return string(out)
+	return extractColumn(out, 0)
 }
 
-func extractID(processes string) string {
-	lines := strings.Split(processes, "\n")
+func extractColumn(dockerOut []byte, pos int) string {
+	lines := strings.Split(string(dockerOut), "\n")
 	ids := make([]string, len(lines))
 	for i, l := range lines {
-		pos := strings.Index(l, "\t")
-		if pos > 0 {
-			ids[i] = l[0:pos]
+		columns := columnSep.Split(l, -1)
+		if 0 <= pos && pos < len(columns) {
+			ids[i] = columns[pos]
 		}
 	}
 	return strings.Join(ids, " ")
