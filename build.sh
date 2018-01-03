@@ -2,8 +2,8 @@
 
 bin_name=docker-selector
 
-GOOS=linux   GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/linux_64_${bin_name}
 GOOS=linux   GOARCH=386   go build -ldflags="-s -w" -o ./dist/linux_386_${bin_name}
+GOOS=linux   GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/linux_64_${bin_name}
 GOOS=windows GOARCH=386   go build -ldflags="-s -w" -o ./dist/windows_386_${bin_name}.exe
 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ./dist/windows_64_${bin_name}.exe
 GOOS=darwin  GOARCH=386   go build -ldflags="-s -w" -o ./dist/darwin_386_${bin_name}
