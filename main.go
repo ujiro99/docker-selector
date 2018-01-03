@@ -37,15 +37,15 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) error {
-		var id string
+		var ids string
 		if image {
-			id = execDockerImage()
+			ids = execDockerImage()
 		} else if all {
-			id = execDockerPecoAll()
+			ids = execDockerPsAll()
 		} else {
-			id = execDockerPeco()
+			ids = execDockerPs()
 		}
-		fmt.Print(id)
+		fmt.Print(ids)
 		return nil
 	}
 
@@ -60,7 +60,7 @@ func execDockerImage() string {
 	return extractColumn(s, 2)
 }
 
-func execDockerPeco() string {
+func execDockerPs() string {
 	var s string
 	s = output([]string{"docker", "ps"}, "")
 	s = removeHeader(s)
@@ -68,7 +68,7 @@ func execDockerPeco() string {
 	return extractColumn(s, 0)
 }
 
-func execDockerPecoAll() string {
+func execDockerPsAll() string {
 	var s string
 	s = output([]string{"docker", "ps", "-a"}, "")
 	s = removeHeader(s)
