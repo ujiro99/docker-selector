@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 
-	"github.com/mattn/go-pipeline"
 	"github.com/urfave/cli"
 )
 
@@ -52,40 +53,63 @@ func main() {
 }
 
 func execDockerImage() string {
-	out, err := pipeline.Output(
-		[]string{"docker", "images"},
-		[]string{"peco"},
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return extractColumn(out, 2)
+	var s string
+	s = output([]string{"docker", "images"}, "")
+	s = removeHeader(s)
+	s = output([]string{"peco"}, s)
+	return extractColumn(s, 2)
 }
 
 func execDockerPeco() string {
-	out, err := pipeline.Output(
-		[]string{"docker", "ps"},
-		[]string{"peco"},
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return extractColumn(out, 0)
+	var s string
+	s = output([]string{"docker", "ps"}, "")
+	s = removeHeader(s)
+	s = output([]string{"peco"}, s)
+	return extractColumn(s, 0)
 }
 
 func execDockerPecoAll() string {
-	out, err := pipeline.Output(
-		[]string{"docker", "ps", "-a"},
-		[]string{"peco"},
-	)
+	var s string
+	s = output([]string{"docker", "ps", "-a"}, "")
+	s = removeHeader(s)
+	s = output([]string{"peco"}, s)
+	return extractColumn(s, 0)
+}
+
+func output(cmd []string, toStdin string) string {
+	var c *exec.Cmd
+	if len(cmd) >= 2 {
+		c = exec.Command(cmd[0], cmd[1:]...)
+	} else {
+		c = exec.Command(cmd[0])
+	}
+	if toStdin != "" {
+		// I can't do anything if fails here.
+		in, _ := c.StdinPipe()
+		io.WriteString(in, toStdin)
+		in.Close()
+	}
+	// Depending on the environment, fails here.
+	s, err := c.Output()
 	if err != nil {
 		log.Fatal(err)
 	}
-	return extractColumn(out, 0)
+	return string(s)
 }
 
-func extractColumn(dockerOut []byte, pos int) string {
-	lines := strings.Split(string(dockerOut), "\n")
+func removeHeader(out string) string {
+	lines := strings.Split(out, "\n")
+	// The measured value was 3.
+	if len(lines) >= 3 {
+		return strings.Join(lines[1:], "\n")
+	}
+	// If there is no container or image,
+	// remains header to avoiding error of peco.
+	return out
+}
+
+func extractColumn(out string, pos int) string {
+	lines := strings.Split(out, "\n")
 	ids := make([]string, len(lines))
 	for i, l := range lines {
 		columns := columnSep.Split(l, -1)
