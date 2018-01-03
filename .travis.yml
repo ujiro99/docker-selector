@@ -7,7 +7,6 @@ install:
   - go get ./...
   - go get -u golang.org/x/tools/cmd/goimports
   - go get -u github.com/golang/lint/golint
-  - go get -u github.com/mitchellh/gox
 
 script:
   - go vet ./...
@@ -23,11 +22,11 @@ deploy:
   skip_cleanup: true
   file:
     - "dist/darwin_386_docker-selector.zip"
-    - "dist/darwin_amd64_docker-selector.zip"
+    - "dist/darwin_64_docker-selector.zip"
     - "dist/linux_386_docker-selector.zip"
-    - "dist/linux_amd64_docker-selector.zip"
+    - "dist/linux_64_docker-selector.zip"
     - "dist/windows_386_docker-selector.zip"
-    - "dist/windows_amd64_docker-selector.zip"
+    - "dist/windows_64_docker-selector.zip"
   on:
     all_branches: true
     tags: true
