@@ -2,18 +2,20 @@ package main
 
 import (
 	"fmt"
-	"io"
-	"log"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
+
+	"io"
+	"log"
 
 	"github.com/urfave/cli"
 )
 
 var (
 	columnSep = regexp.MustCompile(`\s+`)
+	debug     = false
 )
 
 func main() {
@@ -34,6 +36,11 @@ func main() {
 			Usage:       "Show images",
 			Destination: &image,
 		},
+		cli.BoolFlag{
+			Name:        "debug",
+			Usage:       "Show debug logs",
+			Destination: &debug,
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
@@ -50,6 +57,22 @@ func main() {
 	}
 
 	app.Run(os.Args)
+}
+
+func logD(format string, a ...interface{}) {
+	if debug {
+		if a == nil {
+			log.Print(format)
+		} else {
+			log.Printf(format, a)
+		}
+	}
+}
+
+func logE(a ...interface{}) {
+	if debug && a != nil {
+		log.Fatal(a)
+	}
 }
 
 func execDockerImage() string {
@@ -77,35 +100,45 @@ func execDockerPsAll() string {
 }
 
 func output(cmd []string, toStdin string) string {
+	logD("execute start %v", cmd)
 	var c *exec.Cmd
 	if len(cmd) >= 2 {
 		c = exec.Command(cmd[0], cmd[1:]...)
 	} else {
 		c = exec.Command(cmd[0])
 	}
+
 	if toStdin != "" {
 		// I can't do anything if fails here.
-		in, _ := c.StdinPipe()
+		in, err := c.StdinPipe()
+		if err != nil {
+			logE(err)
+		}
 		io.WriteString(in, toStdin)
 		in.Close()
 	}
 	// Depending on the environment, fails here.
 	s, err := c.Output()
 	if err != nil {
-		log.Fatal(err)
+		logE(err)
 	}
+	logD("execute finish %v", cmd)
 	return string(s)
 }
 
-func removeHeader(out string) string {
-	lines := strings.Split(out, "\n")
+func removeHeader(in string) string {
+	lines := strings.Split(in, "\n")
+
 	// The measured value was 3.
 	if len(lines) >= 3 {
+		logD("removed a header.")
 		return strings.Join(lines[1:], "\n")
 	}
+
 	// If there is no container or image,
 	// remains header to avoiding error of peco.
-	return out
+	logD("remains a header.")
+	return in
 }
 
 func extractColumn(out string, pos int) string {
