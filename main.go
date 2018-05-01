@@ -114,9 +114,15 @@ func output(cmd []string, toStdin string) string {
 		if err != nil {
 			logE(err)
 		}
-		io.WriteString(in, toStdin)
-		in.Close()
+
+		go func() {
+			_, err := io.WriteString(in, toStdin)
+			if err != nil {
+				logE(err)
+			}
+		}()
 	}
+
 	// Depending on the environment, fails here.
 	s, err := c.Output()
 	if err != nil {
